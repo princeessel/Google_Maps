@@ -14,11 +14,16 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PointOfInterest;
+
+import java.util.Locale;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+    public final float zoom = 15f;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,16 +50,44 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap = googleMap;
 
         // Add a marker in Sydney and move the camera
-        LatLng home = new LatLng(41.832607, -87.612083);
+        LatLng home = new LatLng(41.832459, -87.611739);
 
-        float zoom = 10;
-        CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(home,zoom);
-        mMap.moveCamera(cameraUpdate);
+
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(home,zoom));
+        setMapLongClick(mMap);
+        setPoiClick(mMap);
     }
 
-    public void setMapLongClick(final GoogleMap map){
+    private void setMapLongClick(final GoogleMap map){
+        map.setOnMapLongClickListener(new GoogleMap.OnMapLongClickListener() {
+            @Override
+            public void onMapLongClick(LatLng latLng) {
+                map.addMarker(new MarkerOptions().position(latLng));
+                String snippet = String.format(Locale.getDefault(),
+                        "Lat: %1$.5f, Long: %2$.5f",
+                        latLng.latitude,
+                        latLng.longitude);
+
+                map.addMarker(new MarkerOptions()
+                .position(latLng)
+                .title(getString(R.string.dropped_pin))
+                .snippet(snippet));
+            }
+        });
 
 
+    }
+
+    private void setPoiClick(final GoogleMap map){
+        map.setOnPoiClickListener(new GoogleMap.OnPoiClickListener() {
+            @Override
+            public void onPoiClick(PointOfInterest pointOfInterest) {
+                Marker poiMarker = mMap.addMarker(new MarkerOptions()
+                .position(pointOfInterest.latLng)
+                .title(pointOfInterest.name));
+                poiMarker.showInfoWindow();
+            }
+        });
     }
 
     @Override
